@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <stack>
+#include <random>
 
 using namespace std;
 
@@ -57,21 +58,82 @@ BVHNode *BVHAccel::construct_bvh(std::vector<Primitive *>::iterator start,
   // size configuration. The starter code build a BVH aggregate with a
   // single leaf node (which is also the root) that encloses all the
   // primitives.
+    
+    BBox bbox;
 
+    for (auto p = start; p != end; p++) {
+      BBox bb = (*p)->get_bbox();
+      bbox.expand(bb);
+    }
+    
+    if (distance(start, end) <= max_leaf_size) {
 
-  BBox bbox;
+        BVHNode *node = new BVHNode(bbox);
+        node->start = start;
+        node->end = end;
 
-  for (auto p = start; p != end; p++) {
-    BBox bb = (*p)->get_bbox();
-    bbox.expand(bb);
-  }
-
-  BVHNode *node = new BVHNode(bbox);
-  node->start = start;
-  node->end = end;
-
-  return node;
-
+        return node;
+    } else {
+        // Step 2: Split the tree partition function (en.cppreference.com/w/cpp/algorithm/partition)
+        
+        Vector3D extent = bbox.extent;
+        
+        std::vector<Primitive *>::iterator middle;
+                
+        if (extent.x >= extent.y && extent.x >= extent.z) {
+            float split_pt = 0.0;
+                    
+            for (auto p = start; p != end; p++) {
+                split_pt += (*p)->get_bbox().centroid().x;
+            }
+            
+            split_pt /= distance(start, end);
+            
+            middle = std::partition(start, end, [split_pt](const Primitive* p) {
+                return p->get_bbox().centroid().x < split_pt;
+            });
+        } else if (extent.y >= extent.x && extent.y >= extent.z) {
+            float split_pt = 0.0;
+                    
+            for (auto p = start; p != end; p++) {
+                split_pt += (*p)->get_bbox().centroid().y;
+            }
+            
+            split_pt /= distance(start, end);
+            
+            middle = std::partition(start, end, [split_pt](const Primitive* p) {
+                return p->get_bbox().centroid().y < split_pt;
+            });
+        } else {
+            float split_pt = 0.0;
+                    
+            for (auto p = start; p != end; p++) {
+                split_pt += (*p)->get_bbox().centroid().z;
+            }
+            
+            split_pt /= distance(start, end);
+            
+            middle = std::partition(start, end, [split_pt](const Primitive* p) {
+                return p->get_bbox().centroid().z < split_pt;
+            });
+        }
+        
+        // Ensure we make some progress in the split
+        
+        if (middle == start || middle == end) {
+            middle = start + (end - start) / 2;
+        }
+        
+        auto leftChild = construct_bvh(start, middle, max_leaf_size);
+        auto rightChild = construct_bvh(middle, end, max_leaf_size);
+                
+        BVHNode *node = new BVHNode(bbox);
+        
+        node->l = leftChild;
+        node->r = rightChild;
+        
+        return node;
+    }
 
 }
 
@@ -97,17 +159,28 @@ bool BVHAccel::has_intersection(const Ray &ray, BVHNode *node) const {
 bool BVHAccel::intersect(const Ray &ray, Intersection *i, BVHNode *node) const {
   // TODO (Part 2.3):
   // Fill in the intersect function.
+    
+      double t0, t1;
+    
+    if (node->bb.intersect(ray, t0, t1) == false) {
+        return false;
+    }
 
+      if (node->isLeaf()) { // Leave node
+            bool hit = false;
+            for (auto p = node->start; p != node->end; p++) {
+                total_isects++;
+                hit = (*p)->intersect(ray, i) || hit;
+            }
+            return hit;
+      }
 
-
-  bool hit = false;
-  for (auto p : primitives) {
-    total_isects++;
-    hit = p->intersect(ray, i) || hit;
-  }
-  return hit;
-
-
+      bool hit1 = false, hit2 = false;
+    
+      if (node->l) hit1 = intersect(ray, i, node->l);
+      if (node->r) hit2 = intersect(ray, i, node->r);
+        
+      return hit1 || hit2;
 }
 
 } // namespace SceneObjects
