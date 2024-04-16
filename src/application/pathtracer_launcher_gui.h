@@ -15,6 +15,7 @@ struct GUISettings {
     pathtracer_ns_aa = 1;
     pathtracer_max_ray_depth = 1;
     pathtracer_ns_area_light = 1;
+    pathtracer_ns_spot_light = 1;
 
     pathtracer_ns_diff = 1;
     pathtracer_ns_glsy = 1;
@@ -37,6 +38,7 @@ struct GUISettings {
   size_t pathtracer_ns_aa;
   size_t pathtracer_max_ray_depth;
   size_t pathtracer_ns_area_light;
+  size_t pathtracer_ns_spot_light;
 
   size_t pathtracer_ns_diff;
   size_t pathtracer_ns_glsy;

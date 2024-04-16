@@ -27,12 +27,13 @@ void usage(const char *binaryName) {
   printf("Program Options:\n");
   printf("  -s  <INT>        Number of camera rays per pixel\n");
   printf("  -l  <INT>        Number of samples per area light\n");
+  printf("  -v  <FLOAT>      Number of samples per spot light\n");
   printf("  -t  <INT>        Number of render threads\n");
   printf("  -m  <INT>        Maximum ray depth\n");
   printf("  -o  <INT>        Accumulate Bounces of Light \n");
   printf("  -e  <PATH>       Path to environment map\n");
   printf("  -b  <FLOAT>      The size of the aperture\n");
-  printf("  -d  <FLOAT>      The focal distance\n");
+  printf("  -d  <FLOAT>      The focal distance\n");;
   printf("  -f  <FILENAME>   Image (.png) file to save output to in windowless "
          "mode\n");
   printf(
@@ -114,6 +115,7 @@ int main(int argc, char **argv) {
       config.pathtracer_max_tolerance = settings.pathtracer_max_tolerance;
       config.pathtracer_ns_aa = settings.pathtracer_ns_aa;
       config.pathtracer_ns_area_light = settings.pathtracer_ns_area_light;
+      config.pathtracer_ns_spot_light = settings.pathtracer_ns_spot_light;
       config.pathtracer_ns_diff = settings.pathtracer_ns_diff;
       config.pathtracer_ns_glsy = settings.pathtracer_ns_glsy;
       config.pathtracer_ns_refr = settings.pathtracer_ns_refr;
@@ -123,7 +125,7 @@ int main(int argc, char **argv) {
       config.pathtracer_accumulate_bounces = settings.pathtracer_accumulate_bounces;
     }
   } else {
-    while ((opt = getopt(argc, argv, "s:l:t:m:o:e:h:H:f:r:c:b:d:a:p:")) !=
+    while ((opt = getopt(argc, argv, "s:l:v:t:m:o:e:h:H:f:r:c:b:d:a:p:")) !=
            -1) { // for each option...
       switch (opt) {
       case 'f':
@@ -147,6 +149,9 @@ int main(int argc, char **argv) {
         break;
       case 'l':
         config.pathtracer_ns_area_light = atoi(optarg);
+        break;
+      case 'v':
+        config.pathtracer_ns_spot_light = atoi(optarg);
         break;
       case 't':
         config.pathtracer_num_threads = atoi(optarg);

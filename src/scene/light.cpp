@@ -60,13 +60,18 @@ Vector3D PointLight::sample_L(const Vector3D p, Vector3D* wi,
 // Spot Light //
 
 SpotLight::SpotLight(const Vector3D rad, const Vector3D pos,
-                     const Vector3D dir, double angle) {
+                     const Vector3D dir, double angle) : radiance(rad), position(pos) {
 
 }
 
 Vector3D SpotLight::sample_L(const Vector3D p, Vector3D* wi,
                              double* distToLight, double* pdf) const {
-  return Vector3D();
+    /* Copy of sample_l from PointLight*/
+    Vector3D d = position - p;
+    *wi = d.unit();
+    *distToLight = d.norm();
+    *pdf = 1.0;
+    return radiance;
 }
 
 

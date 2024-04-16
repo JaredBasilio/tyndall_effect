@@ -79,6 +79,9 @@ PathTracer::estimate_direct_lighting_hemisphere(const Ray &r,
   // estimate_direct_lighting_importance (outside of delta lights). We keep the
   // same number of samples for clarity of comparison.
   int num_samples = scene->lights.size() * ns_area_light;
+  int spot_light_samples = scene->lights.size() * ns_spot_light;
+//  cout << "Spot Light Samples" << spot_light_samples;
+//  cout << "Area Samples" << num_samples;
   Vector3D L_out;
 
   // TODO (Part 3): Write your sampling loop here
@@ -149,6 +152,7 @@ PathTracer::estimate_direct_lighting_importance(const Ray &r,
                                     : light_radiance;
       L_out += bsdf * L_i * dot(isect.n, new_ray.d) / pdf * 2;
     } else {
+        // goes here during ns_area_light
       Vector3D cur_L_out;
       for (int i = 0; i < ns_area_light; i++) {
         Vector3D light_radiance = light->sample_L(hit_p, &wi, &dist_to_light, &pdf);

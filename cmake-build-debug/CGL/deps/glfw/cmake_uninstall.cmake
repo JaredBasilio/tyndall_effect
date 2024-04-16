@@ -1,9 +1,9 @@
 
-if (NOT EXISTS "/Users/jaredbasilio/documents/CS184/hw3-pathtracer-sp24-viscaria/cmake-build-debug/CGL/deps/glfw/install_manifest.txt")
-    message(FATAL_ERROR "Cannot find install manifest: \"/Users/jaredbasilio/documents/CS184/hw3-pathtracer-sp24-viscaria/cmake-build-debug/CGL/deps/glfw/install_manifest.txt\"")
+if (NOT EXISTS "/Users/jaredbasilio/Documents/CS184/tyndall_effect/cmake-build-debug/CGL/deps/glfw/install_manifest.txt")
+    message(FATAL_ERROR "Cannot find install manifest: \"/Users/jaredbasilio/Documents/CS184/tyndall_effect/cmake-build-debug/CGL/deps/glfw/install_manifest.txt\"")
 endif()
 
-file(READ "/Users/jaredbasilio/documents/CS184/hw3-pathtracer-sp24-viscaria/cmake-build-debug/CGL/deps/glfw/install_manifest.txt" files)
+file(READ "/Users/jaredbasilio/Documents/CS184/tyndall_effect/cmake-build-debug/CGL/deps/glfw/install_manifest.txt" files)
 string(REGEX REPLACE "\n" ";" files "${files}")
 
 foreach (file ${files})

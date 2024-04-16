@@ -74,6 +74,7 @@ namespace CGL {
         size_t isAccumBounces; ///< number of bounces to accumulate
         size_t ns_aa;         ///< number of camera rays in one pixel (along one axis)
         size_t ns_area_light; ///< number samples per area light source
+        size_t ns_spot_light; ///< number of samples per spot light source
         size_t ns_diff;       ///< number of samples - diffuse surfaces
         size_t ns_glsy;       ///< number of samples - glossy surfaces
         size_t ns_refr;       ///< number of samples - refractive surfaces

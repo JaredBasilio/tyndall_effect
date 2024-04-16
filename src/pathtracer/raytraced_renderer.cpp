@@ -47,7 +47,8 @@ RaytracedRenderer::RaytracedRenderer(size_t ns_aa,
                        bool direct_hemisphere_sample,
                        string filename,
                        double lensRadius,
-                       double focalDistance) {
+                       double focalDistance,
+                       size_t ns_spot_light) {
   state = INIT;
 
   pt = new PathTracer();
@@ -56,6 +57,7 @@ RaytracedRenderer::RaytracedRenderer(size_t ns_aa,
   pt->max_ray_depth = max_ray_depth;                        // Maximum recursion ray depth
   pt->isAccumBounces = isAccumBounces;                      // Accumulate Bounces Along Path
   pt->ns_area_light = ns_area_light;                        // Number of samples for area light
+  pt->ns_spot_light = ns_spot_light;                        // Number of samples for spot light
   pt->ns_diff = ns_diff;                                    // Number of samples for diffuse surface
   pt->ns_glsy = ns_diff;                                    // Number of samples for glossy surface
   pt->ns_refr = ns_refr;                                    // Number of samples for refraction
@@ -526,10 +528,18 @@ void RaytracedRenderer::key_press(int key) {
     pt->ns_area_light *= 2;
     fprintf(stdout, "[PathTracer] Area light sample count increased to %zu.\n", pt->ns_area_light);
     break;
-  case '-': case '_':
-    if (pt->ns_area_light > 1) pt->ns_area_light /= 2;
-    fprintf(stdout, "[PathTracer] Area light sample count decreased to %zu.\n", pt->ns_area_light);
+  case 'z': case 'c':
+    if (pt->ns_spot_light > 1) pt->ns_spot_light /= 2;
+    fprintf(stdout, "[PathTracer] Spot light sample count decreased to %zu.\n", pt->ns_spot_light);
     break;
+  case 'x': case 'v':
+      pt->ns_spot_light *= 2;
+      fprintf(stdout, "[PathTracer] Spot light sample count increased to %zu.\n", pt->ns_spot_light);
+      break;
+  case '-': case '_':
+      if (pt->ns_area_light > 1) pt->ns_area_light /= 2;
+      fprintf(stdout, "[PathTracer] Area light sample count decreased to %zu.\n", pt->ns_area_light);
+      break;
   case '.': case '>':
     pt->max_ray_depth++;
     fprintf(stdout, "[PathTracer] Max ray depth increased to %zu.\n", pt->max_ray_depth);
