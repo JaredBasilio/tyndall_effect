@@ -148,9 +148,9 @@ CGL/deps/glfw/src/clean: CGL/deps/glfw/src/CMakeFiles/glfw.dir/clean
 # Target rules for target CMakeFiles/pt31.dir
 
 # All Build rule for target.
-CMakeFiles/pt31.dir/all: CGL/deps/glfw/src/CMakeFiles/glfw.dir/all
 CMakeFiles/pt31.dir/all: CGL/CMakeFiles/CGL.dir/all
 CMakeFiles/pt31.dir/all: CGL/deps/glew/CMakeFiles/glew.dir/all
+CMakeFiles/pt31.dir/all: CGL/deps/glfw/src/CMakeFiles/glfw.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/pt31.dir/build.make CMakeFiles/pt31.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/pt31.dir/build.make CMakeFiles/pt31.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/jaredbasilio/Documents/CS184/tyndall_effect/cmake-build-debug/CMakeFiles --progress-num=66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81 "Built target pt31"
@@ -176,10 +176,10 @@ CMakeFiles/pt31.dir/clean:
 # Target rules for target CMakeFiles/pathtracer.dir
 
 # All Build rule for target.
-CMakeFiles/pathtracer.dir/all: CGL/deps/glfw/src/CMakeFiles/glfw.dir/all
 CMakeFiles/pathtracer.dir/all: CMakeFiles/pt31.dir/all
 CMakeFiles/pathtracer.dir/all: CGL/CMakeFiles/CGL.dir/all
 CMakeFiles/pathtracer.dir/all: CGL/deps/glew/CMakeFiles/glew.dir/all
+CMakeFiles/pathtracer.dir/all: CGL/deps/glfw/src/CMakeFiles/glfw.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/pathtracer.dir/build.make CMakeFiles/pathtracer.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/pathtracer.dir/build.make CMakeFiles/pathtracer.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/jaredbasilio/Documents/CS184/tyndall_effect/cmake-build-debug/CMakeFiles --progress-num=37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65 "Built target pathtracer"
@@ -205,8 +205,8 @@ CMakeFiles/pathtracer.dir/clean:
 # Target rules for target CGL/CMakeFiles/CGL.dir
 
 # All Build rule for target.
-CGL/CMakeFiles/CGL.dir/all: CGL/deps/glfw/src/CMakeFiles/glfw.dir/all
 CGL/CMakeFiles/CGL.dir/all: CGL/deps/glew/CMakeFiles/glew.dir/all
+CGL/CMakeFiles/CGL.dir/all: CGL/deps/glfw/src/CMakeFiles/glfw.dir/all
 	$(MAKE) $(MAKESILENT) -f CGL/CMakeFiles/CGL.dir/build.make CGL/CMakeFiles/CGL.dir/depend
 	$(MAKE) $(MAKESILENT) -f CGL/CMakeFiles/CGL.dir/build.make CGL/CMakeFiles/CGL.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/jaredbasilio/Documents/CS184/tyndall_effect/cmake-build-debug/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 "Built target CGL"

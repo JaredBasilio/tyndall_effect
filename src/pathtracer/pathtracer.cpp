@@ -78,10 +78,11 @@ PathTracer::estimate_direct_lighting_hemisphere(const Ray &r,
   // This is the same number of total samples as
   // estimate_direct_lighting_importance (outside of delta lights). We keep the
   // same number of samples for clarity of comparison.
-  int num_samples = scene->lights.size() * ns_area_light;
-  int spot_light_samples = scene->lights.size() * ns_spot_light;
+//  int num_samples = scene->lights.size() * ns_area_light;
+  int num_samples = scene->lights.size() * ns_spot_light;
+  cout << "Num Samples: " << num_samples;
 //  cout << "Spot Light Samples" << spot_light_samples;
-//  cout << "Area Samples" << num_samples;
+  cout << "Area Samples" << num_samples;
   Vector3D L_out;
 
   // TODO (Part 3): Write your sampling loop here
@@ -153,6 +154,7 @@ PathTracer::estimate_direct_lighting_importance(const Ray &r,
       L_out += bsdf * L_i * dot(isect.n, new_ray.d) / pdf * 2;
     } else {
         // goes here during ns_area_light
+//      cout << "Range: " << range << "\n";
       Vector3D cur_L_out;
       for (int i = 0; i < ns_area_light; i++) {
         Vector3D light_radiance = light->sample_L(hit_p, &wi, &dist_to_light, &pdf);
@@ -189,6 +191,7 @@ Vector3D PathTracer::one_bounce_radiance(const Ray &r,
   // TODO: Part 3, Task 3
   // Returns either the direct illumination by hemisphere or importance sampling
   // depending on `direct_hemisphere_sample`
+//  cout << "We go here \n";
   if (direct_hemisphere_sample)
     return estimate_direct_lighting_hemisphere(r, isect);
   else
@@ -197,6 +200,7 @@ Vector3D PathTracer::one_bounce_radiance(const Ray &r,
 
 Vector3D PathTracer::at_least_one_bounce_radiance(const Ray &r,
                                                   const Intersection &isect) {
+//    cout << "we go here \n";
   Matrix3x3 o2w;
   make_coord_space(o2w, isect.n);
   Matrix3x3 w2o = o2w.T();
@@ -209,7 +213,7 @@ Vector3D PathTracer::at_least_one_bounce_radiance(const Ray &r,
   // TODO: Part 4, Task 2
   // Returns the one bounce radiance + radiance from extra bounces at this point.
   // Should be called recursively to simulate extra bounces.
-  
+//  cout << "We go here \n";
 
   if (r.depth == 1)
     return one_bounce_radiance(r, isect);
@@ -260,9 +264,11 @@ Vector3D PathTracer::est_radiance_global_illumination(const Ray &r) {
   // been implemented.
   //
   // REMOVE THIS LINE when you are ready to begin Part 3.
-  
+
+  // Returns black if the lights do not intersect
+
   if (!bvh->intersect(r, &isect))
-    return envLight ? envLight->sample_dir(r) : L_out;
+      return envLight ? envLight->sample_dir(r) : L_out;
 
   if (PART <= 2)
     L_out = (isect.t == INF_D) ? debug_shading(r.d) : normal_shading(isect.n);

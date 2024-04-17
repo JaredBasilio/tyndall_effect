@@ -145,6 +145,9 @@ void PathtracerLauncherGUI::render_loop(GLFWwindow *a_window,
       ImGui::InputInt(
           "Samples Per Area Light",
           reinterpret_cast<int *>(&a_settings.pathtracer_ns_area_light));
+      ImGui::InputInt(
+             "Samples Per Spot Light",
+            reinterpret_cast<int *>(&a_settings.pathtracer_ns_spot_light));
       bool trace_final_bounce = !a_settings.pathtracer_accumulate_bounces;
       if (ImGui::RadioButton("Accumulate Light Bounces", a_settings.pathtracer_accumulate_bounces)) {
         a_settings.pathtracer_accumulate_bounces = true;
@@ -415,6 +418,7 @@ void PathtracerLauncherGUI::GUISettings::serialize(
   file << pathtracer_ns_aa << "\n";
   file << pathtracer_max_ray_depth << "\n";
   file << pathtracer_ns_area_light << "\n";
+  file << pathtracer_ns_spot_light << "\n";
   file << pathtracer_ns_diff << "\n";
   file << pathtracer_ns_glsy << "\n";
   file << pathtracer_ns_refr << "\n";
@@ -456,6 +460,7 @@ void PathtracerLauncherGUI::GUISettings::deserialize(
   file >> pathtracer_ns_aa;
   file >> pathtracer_max_ray_depth;
   file >> pathtracer_ns_area_light;
+  file >> pathtracer_ns_spot_light;
   file >> pathtracer_ns_diff;
   file >> pathtracer_ns_glsy;
   file >> pathtracer_ns_refr;

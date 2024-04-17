@@ -60,18 +60,32 @@ Vector3D PointLight::sample_L(const Vector3D p, Vector3D* wi,
 // Spot Light //
 
 SpotLight::SpotLight(const Vector3D rad, const Vector3D pos,
-                     const Vector3D dir, double angle) : radiance(rad), position(pos) {
-
+                     const Vector3D dir, double angle) : radiance(rad / 10), position(pos), direction(dir), angle(angle) {
+    // Initializes the light parameters
+//    cout << "Detected Spotlight with Parameters " << rad << " " << pos << " " << dir << " " << angle;
 }
 
 Vector3D SpotLight::sample_L(const Vector3D p, Vector3D* wi,
                              double* distToLight, double* pdf) const {
-    /* Copy of sample_l from PointLight*/
+    /* Copy of sample_l from AreaLight*/
+    // Calculate direction from the point to the light position
     Vector3D d = position - p;
+
+    // Normalize the direction vector
     *wi = d.unit();
+
+    // Calculate the distance from the point to the light position
     *distToLight = d.norm();
-    *pdf = 1.0;
-    return radiance;
+
+    // Calculate the angle between the spotlight direction and the direction to the point
+    double cosTheta = dot(-d.unit(), direction.unit());
+    double angleFactor = max(0.0, cosTheta);
+
+    // Calculate the probability density function (pdf) based on the angle
+    *pdf = angleFactor / (2 * M_PI * (1 - cos(angle)));
+
+    // Return the radiance of the light, attenuated by the angle factor
+    return radiance * angleFactor;
 }
 
 
@@ -81,7 +95,8 @@ AreaLight::AreaLight(const Vector3D rad,
                      const Vector3D pos,   const Vector3D dir, 
                      const Vector3D dim_x, const Vector3D dim_y)
   : radiance(rad), position(pos), direction(dir),
-    dim_x(dim_x), dim_y(dim_y), area(dim_x.norm() * dim_y.norm()) { }
+    dim_x(dim_x), dim_y(dim_y), area(dim_x.norm() * dim_y.norm()) {
+}
 
 Vector3D AreaLight::sample_L(const Vector3D p, Vector3D* wi, 
                              double* distToLight, double* pdf) const {
