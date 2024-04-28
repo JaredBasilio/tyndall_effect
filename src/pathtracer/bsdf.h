@@ -116,9 +116,27 @@ class BSDF {
 
 }; // class BSDF
 
-/**
- * Diffuse BSDF.
- */
+static std::mt19937 gen(std::random_device{}());  // Seed with std::random_device for more randomness
+static std::uniform_real_distribution<> dis(0, 1);
+
+class FogBSDF : public BSDF {
+public:
+    explicit FogBSDF(double g);
+
+    Vector3D f(const Vector3D wo, const Vector3D wi);
+
+    Vector3D sample_f(const Vector3D wo, Vector3D *wi, double *pdf);
+    
+    Vector3D get_emission() const { return Vector3D(); }
+    bool is_delta() const { return false; }
+    
+
+private:
+    double g;  // Asymmetry factor for Henyey-Greenstein phase function.
+    Vector3D reflectance;
+};
+
+
 class DiffuseBSDF : public BSDF {
  public:
 

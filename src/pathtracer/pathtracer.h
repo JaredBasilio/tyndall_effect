@@ -43,6 +43,8 @@ namespace CGL {
         void clear();
 
         void autofocus(Vector2D loc);
+        
+        bool hit_fog(const Ray &r, SceneObjects::Intersection &isect);
 
         /**
          * Trace an ray in the scene.
@@ -80,6 +82,10 @@ namespace CGL {
 
         size_t samplesPerBatch;
         double maxTolerance;
+        
+        double P_absorb;
+        double P_scatter;
+        
         bool direct_hemisphere_sample; ///< true if sampling uniformly from hemisphere for direct lighting. Otherwise, light sample
 
         // Components //

@@ -20,6 +20,9 @@ PathTracer::PathTracer() {
   tm_level = 1.0f;
   tm_key = 0.18;
   tm_wht = 5.0f;
+    
+  P_absorb = 0.1;
+  P_scatter = 0.3;
 }
 
 PathTracer::~PathTracer() {
@@ -45,6 +48,21 @@ void PathTracer::clear() {
 void PathTracer::write_to_framebuffer(ImageBuffer &framebuffer, size_t x0,
                                       size_t y0, size_t x1, size_t y1) {
   sampleBuffer.toColor(framebuffer, x0, y0, x1, y1);
+}
+
+bool PathTracer::hit_fog(const Ray &r, Intersection &isect) {
+    auto epsilon = ((double) rand() / (RAND_MAX));
+    auto distance_btwn_origin_fog = -log(1-epsilon) / P_absorb;
+    auto fog_time = distance_btwn_origin_fog / r.d.norm();
+    
+    const Vector3D fog_pos = r.o + r.d * fog_time;
+    bool hit_fog = false;
+    if (fog_time < isect.t) {
+      hit_fog = true;
+      isect.t = fog_time;
+    }
+    
+    return hit_fog;
 }
 
 Vector3D
@@ -85,14 +103,16 @@ PathTracer::estimate_direct_lighting_hemisphere(const Ray &r,
         sample_ray.max_t = std::numeric_limits<float>::infinity();
         
         Intersection sample_isect;
-                
+        
         if (bvh->intersect(sample_ray, &sample_isect)) {
-            Vector3D sample_ray_L = sample_isect.bsdf->get_emission();
-            float cosine = dot(isect.n, sample_dir_obj);
-            Vector3D bsdf_value = isect.bsdf->f(w_out, sample_direction);
             
-            float pdf = 1.0 / (2 * M_PI);
-            L_out +=  sample_ray_L * bsdf_value * cosine / pdf;
+                Vector3D sample_ray_L = sample_isect.bsdf->get_emission();
+                float cosine = dot(isect.n, sample_dir_obj);
+                Vector3D bsdf_value = isect.bsdf->f(w_out, sample_direction);
+                
+                float pdf = 1.0 / (2 * M_PI);
+                L_out +=  sample_ray_L * bsdf_value * cosine / pdf;
+            
         }
     }
     
@@ -237,10 +257,12 @@ Vector3D PathTracer::at_least_one_bounce_radiance(const Ray &r,
     Intersection sample_isect;
     
     if (bvh->intersect(sample_ray, &sample_isect)) {
-        float cosine = dot(isect.n, o2w * wi);
-        if (cosine > 0) {
-            // Recursive call to get radiance for the next bounce
-            L_out += at_least_one_bounce_radiance(sample_ray, sample_isect) * cosine * bsdf_val / pdf;
+
+            float cosine = dot(isect.n, o2w * wi);
+            if (cosine > 0) {
+                // Recursive call to get radiance for the next bounce
+                L_out += at_least_one_bounce_radiance(sample_ray, sample_isect) * cosine * bsdf_val / pdf;
+            
         }
     }
     
@@ -254,13 +276,46 @@ Vector3D PathTracer::est_radiance_global_illumination(const Ray &r) {
     if (!bvh->intersect(r, &isect))
        return envLight ? envLight->sample_dir(r) : L_out;
 
-    //L_out = (isect.t == INF_D) ? debug_shading(r.d) : normal_shading(isect.n);
+    // L_out = (isect.t == INF_D) ? debug_shading(r.d) : normal_shading(isect.n);
     
     
-    //L_out = at_least_one_bounce_radiance(r, isect) + zero_bounce_radiance(r, isect);
-    // L_out = one_bounce_radiance(r, isect) + zero_bounce_radiance(r, isect);
-    L_out = zero_bounce_radiance(r, isect) + at_least_one_bounce_radiance(r, isect);
-    //L_out = zero_bounce_radiance(<#const Ray &r#>, <#const Intersection &isect#>)(r, isect);
+        double interval = 0.005;
+        double hit_prob = 0.0015;
+        double beta = 0.2;
+       double attenuation;
+        
+        for (double i = 0; i < isect.t; i += interval) {
+            if (coin_flip(hit_prob)) {
+                isect.t = i;
+                isect.bsdf = new FogBSDF(0.2);
+                
+                Vector3D hit_p = r.o + r.d * isect.t;
+                
+                double distToLight, pdf;
+                Vector3D L_light;
+                
+                for (int j = 0; j < scene->lights.size(); j++) {
+                    Vector3D L_out_light(0, 0, 0);
+                    Vector3D wi;
+                                                      
+                    L_light = scene->lights[j]->sample_L(hit_p, &wi, &distToLight, &pdf);
+                    attenuation = (exp(-beta * distToLight) - 0.7) * 2;
+                }
+                
+                attenuation = std::min(std::max(attenuation, 0.0), 1.0);
+                L_out += Vector3D(3, 3, 3) * attenuation;
+                
+                break;
+            }
+        }
+
+    Vector3D ambient_light(0.1, 0.1, 0.1);  // Low intensity ambient light
+    
+    // Compute lighting with potentially modified intersection due to fog
+    L_out += zero_bounce_radiance(r, isect) + at_least_one_bounce_radiance(r, isect)  + ambient_light;
+    
+    //L_out = one_bounce_radiance(r, isect) + zero_bounce_radiance(r, isect);
+    //L_out = zero_bounce_radiance(r, isect) + at_least_one_bounce_radiance(r, isect);
 
     return L_out;
 }

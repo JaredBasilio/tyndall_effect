@@ -108,4 +108,39 @@ void EmissionBSDF::render_debugger_node()
   }
 }
 
+FogBSDF::FogBSDF(double g) : g(g) {}
+
+Vector3D FogBSDF::f(const Vector3D wo, const Vector3D wi) {
+    double g = 0.6; // Asymmetry factor
+    double cosTheta = dot(wo, wi);
+    
+    double denominator = 1 + g * g + 2 * g * cosTheta;
+    double phaseFunctionValue = (1.0 - g * g) / (4 * PI * pow(denominator, 1.5));
+    
+    return Vector3D(phaseFunctionValue, phaseFunctionValue, phaseFunctionValue);
+}
+
+Vector3D FogBSDF::sample_f(const Vector3D wo, Vector3D *wi, double *pdf) {
+    double g = 0.6;  // Asymmetry factor
+        double phi = 2 * M_PI * dis(gen);
+        double u = dis(gen);
+
+        double cosTheta;
+        if (fabs(g) < 1e-3) {
+            cosTheta = 1 - 2 * u;  // Near isotropic case
+        } else {
+            double temp = (1 - g * g) / (1 - g + 2 * g * u);
+            cosTheta = (1 + g * g - temp * temp) / (2 * g);
+        }
+
+        double sinTheta = sqrt(1 - cosTheta * cosTheta);
+
+        // Convert spherical coordinates to Cartesian coordinates
+        Vector3D localWi(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);
+        *wi = localWi;  // Assuming wo and wi are defined in the same local coordinate system
+        *pdf = (1.0 - g * g) / (4 * M_PI * pow(1 + g * g + 2 * g * cosTheta, 1.5));
+    
+    return f(wo, *wi);
+}
+
 } // namespace CGL
