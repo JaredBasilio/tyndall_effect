@@ -50,20 +50,6 @@ void PathTracer::write_to_framebuffer(ImageBuffer &framebuffer, size_t x0,
   sampleBuffer.toColor(framebuffer, x0, y0, x1, y1);
 }
 
-bool PathTracer::hit_fog(const Ray &r, Intersection &isect) {
-    auto epsilon = ((double) rand() / (RAND_MAX));
-    auto distance_btwn_origin_fog = -log(1-epsilon) / P_absorb;
-    auto fog_time = distance_btwn_origin_fog / r.d.norm();
-    
-    const Vector3D fog_pos = r.o + r.d * fog_time;
-    bool hit_fog = false;
-    if (fog_time < isect.t) {
-      hit_fog = true;
-      isect.t = fog_time;
-    }
-    
-    return hit_fog;
-}
 
 Vector3D
 PathTracer::estimate_direct_lighting_hemisphere(const Ray &r,
@@ -233,7 +219,7 @@ Vector3D PathTracer::at_least_one_bounce_radiance(const Ray &r,
   Vector3D L_out(0, 0, 0);
 
 
-    bool stop_roulette = coin_flip(0.3);
+    bool stop_roulette = coin_flip(0);
     
     if (r.depth == 1 || stop_roulette) {
         return estimate_direct_lighting_importance(r, isect);
@@ -299,11 +285,11 @@ Vector3D PathTracer::est_radiance_global_illumination(const Ray &r) {
                     Vector3D wi;
                                                       
                     L_light = scene->lights[j]->sample_L(hit_p, &wi, &distToLight, &pdf);
-                    attenuation = (exp(-beta * distToLight) - 0.7) * 2;
+                    attenuation = 2 * std::exp(-beta * std::pow(distToLight + 0.7, 9) - 0.7);
                 }
                 
                 attenuation = std::min(std::max(attenuation, 0.0), 1.0);
-                L_out += Vector3D(3, 3, 3) * attenuation;
+                // L_out += Vector3D(5, 5, 5) * attenuation;
                 
                 break;
             }
