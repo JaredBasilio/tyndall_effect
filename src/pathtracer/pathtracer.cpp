@@ -289,7 +289,7 @@ Vector3D PathTracer::est_radiance_global_illumination(const Ray &r) {
                 }
                 
                 attenuation = std::min(std::max(attenuation, 0.0), 1.0);
-                // L_out += Vector3D(5, 5, 5) * attenuation;
+                L_out += Vector3D(5, 5, 5) * attenuation;
                 
                 break;
             }
@@ -338,9 +338,9 @@ void PathTracer::raytrace_pixel(size_t x, size_t y) {
         
         num_samples += samplesPerBatch;
         
-        if (i_val <= 0.05 * avg || num_samples > ns_aa) {
-            break;
-        }
+        // if (i_val <= 0.05 * avg || num_samples > ns_aa) {
+        //     break;
+        // }
     }
     
     sampleBuffer.update_pixel(color_acc / num_samples, x, y);
