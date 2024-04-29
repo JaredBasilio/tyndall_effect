@@ -3,6 +3,7 @@
 #include "scene/light.h"
 #include "scene/sphere.h"
 #include "scene/triangle.h"
+#include "vector3D.h"
 
 #include <algorithm>
 #define msg(s) cerr << "[PathTracer] " << s << endl;
@@ -268,10 +269,12 @@ Vector3D PathTracer::est_radiance_global_illumination(const Ray &r) {
         double interval = 0.005;
         double hit_prob = 0.0015;
         double beta = 0.2;
+        double red_transimission_rate = 0.1;
        double attenuation;
-        
+        int hit_count = 0;
         for (double i = 0; i < isect.t; i += interval) {
             if (coin_flip(hit_prob)) {
+              hit_count += 1;
                 isect.t = i;
                 isect.bsdf = new FogBSDF(0.2);
                 
@@ -285,11 +288,17 @@ Vector3D PathTracer::est_radiance_global_illumination(const Ray &r) {
                     Vector3D wi;
                                                       
                     L_light = scene->lights[j]->sample_L(hit_p, &wi, &distToLight, &pdf);
-                    attenuation = 2 * std::exp(-beta * std::pow(distToLight + 0.7, 9) - 0.7);
+                    // std::exp(-beta * std::pow(distToLight + 0.7, 9) - 0.7);
+                    attenuation =  std::exp(-beta * std::pow(distToLight + 0.5, 4) - 0.7);
                 }
                 
                 attenuation = std::min(std::max(attenuation, 0.0), 1.0);
-                L_out += Vector3D(5, 5, 5) * attenuation;
+                auto red = L_light.x;
+                red += hit_count*red_transimission_rate*L_light.x;
+                auto green = L_light.y;
+                auto blue = L_light.z;
+                Vector3D rayleigh_scattering_color = Vector3D(red*0.83, green, blue*1.2);
+                L_out += rayleigh_scattering_color * attenuation;
                 
                 break;
             }
