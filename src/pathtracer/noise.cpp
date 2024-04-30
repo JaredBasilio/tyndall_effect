@@ -10,7 +10,8 @@ namespace CGL {
 
 PerlinNoise::PerlinNoise() {
   std::random_device rd;
-  std::mt19937 generator(rd());
+  double seed = 6666;
+  std::mt19937 generator(seed);
 
   std::uniform_real_distribution<float> distribution;
   auto gen = std::bind(distribution, generator);
@@ -115,16 +116,21 @@ float PerlinNoise::evalOctaves(Vector3D p, int octaves, float persistence)  {
   float frequency = 1;
   float amplitude = 1;
   float maxValue = 0;  // Used for normalizing result to 0.0 - 1.0
+  float threshold = 0.1;
   for(int i=0; i<octaves; i++) {
-    total += eval(p * frequency) * amplitude;
+    total += (eval(p * frequency)) * amplitude;
     
     maxValue += amplitude;
     
     amplitude *= persistence;
     frequency *= 2;
   }
-  
-  return total/maxValue;
+  auto value = total/maxValue;
+  // if (value < threshold) {
+  //   return 0;
+  // }
+  // std::cout << "value: " << value << std::endl;
+  return value; // returns a num from -1 to 1
 }
 
 } // namespace CGL

@@ -266,10 +266,11 @@ Vector3D PathTracer::est_radiance_global_illumination(const Ray &r) {
                            // 0.005;
   Vector3D marchDirection = r.d.unit();
 
-  double beta = 0.2;
+  double beta = 0.08;
   double red_transimission_rate = 0.1;
   double attenuation;
   int hit_count = 0;
+  double threshold = 0.001;
   for (double i = 0; i < isect.t; i += interval) {
     
     Vector3D sample_pos = r.o + i * marchDirection;
@@ -285,11 +286,16 @@ Vector3D PathTracer::est_radiance_global_illumination(const Ray &r) {
     if (sample_pos.y <= 0) {
       continue; // only one upper half area to be cloud
     }
-    double density = (noise.evalOctaves((sample_pos+Vector3D(1,0,1)), 3, 0.7));
+    double density = ((noise.evalOctaves((sample_pos+Vector3D(1,0,1)), 4, 0.5)));
     // std::cout << "density: " << density << std::endl;
-    double hit_prob = std::max((1 / density)/6000, 0.0); 
-    hit_prob = std::min(hit_prob, 1.0);
+        double hit_prob = std::max((1 / density)/1500, 0.0); 
+    // std::cout << "hit_prob: " << hit_prob << std::endl;
 
+    hit_prob = std::min(hit_prob, 1.0);
+    if (hit_prob < threshold) {
+    hit_prob =  hit_prob / 100;
+  }
+    hit_prob = std::exp(-(std::pow((-sample_pos.y+1.5) + 0.4, 4))) * hit_prob; // creates a smoothing out transition
     if (coin_flip(hit_prob)) {
 
       hit_count += 1;
@@ -306,12 +312,12 @@ Vector3D PathTracer::est_radiance_global_illumination(const Ray &r) {
         Vector3D wi;
 
         L_light = scene->lights[j]->sample_L(hit_p, &wi, &distToLight, &pdf);
-        
-        attenuation = std::exp(-beta * std::pow(distToLight + 0.7, 5) - 0.7);
+        double fog_exposure = 0.4;
+        attenuation = std::exp(-beta * std::pow(distToLight + 0.7, 5) - 0.7)*fog_exposure; 
         //std::exp(-beta * std::pow(distToLight + 0.5, 4) - 0.7);
       }
 
-      attenuation = std::min(std::max(attenuation, 0.0), 1.0); //0.05 buffer to ensure positive attenuation (no black smoke)
+      attenuation = std::min(std::max(attenuation, 0.0), 1.0); 
       auto red = L_light.x;
       auto green = L_light.y;
       auto blue = L_light.z;
@@ -330,7 +336,7 @@ Vector3D PathTracer::est_radiance_global_illumination(const Ray &r) {
 
   // Compute lighting with potentially modified intersection due to fog
   L_out += zero_bounce_radiance(r, isect) +
-           at_least_one_bounce_radiance(r, isect) + ambient_light;
+           at_least_one_bounce_radiance(r, isect);
 
   // L_out = one_bounce_radiance(r, isect) + zero_bounce_radiance(r, isect);
   // L_out = zero_bounce_radiance(r, isect) + at_least_one_bounce_radiance(r,
