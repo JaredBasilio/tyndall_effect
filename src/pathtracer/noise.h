@@ -12,7 +12,7 @@ public:
   PerlinNoise(); // Constructor
                  //   virtual ~PerlinNoise(); // Destructor
   float eval(Vector3D p) const;
-
+  float evalOctaves(Vector3D p, int octaves, float persistence);
 private:
   static const int tableSize = 256;
   std::vector<Vector3D> gradients;
@@ -20,6 +20,7 @@ private:
   int hash(const int &x, const int &y, const int &z) const;
   float lerp(const float &a, const float &b, const float &t) const;
   float smoothstep(const float &t) const;
+  float smootherstep(const float &t) const;
 };
 } // namespace CGL
 #endif // PERLIN_NOISE_H

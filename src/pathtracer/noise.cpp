@@ -41,7 +41,12 @@ float PerlinNoise::lerp(const float &a, const float &b, const float &t) const {
 }
 
 float PerlinNoise::smoothstep(const float &t) const {
+  return 6 * pow(t, 5) - 15 * pow(t, 4) + 10 * pow(t, 3);
+  //return -2 * pow(t, 3) + 3 * pow(t, 2);
+}
+float PerlinNoise::smootherstep(const float &t) const {
   return 6 * pow(t, 2) - 15 * pow(t, 4) + 10 * pow(t, 3);
+  // return 70 * pow(t, 9) - 315 * pow(t, 8) + 540 * pow(t, 7)- 420 * pow(t, 6) + 126 * pow(t, 5);
 }
 
 float PerlinNoise::eval(Vector3D p) const {
@@ -105,4 +110,21 @@ float PerlinNoise::eval(Vector3D p) const {
 
   return lerp(e, f, w); // g
 }
+float PerlinNoise::evalOctaves(Vector3D p, int octaves, float persistence)  {
+  float total = 0;
+  float frequency = 1;
+  float amplitude = 1;
+  float maxValue = 0;  // Used for normalizing result to 0.0 - 1.0
+  for(int i=0; i<octaves; i++) {
+    total += eval(p * frequency) * amplitude;
+    
+    maxValue += amplitude;
+    
+    amplitude *= persistence;
+    frequency *= 2;
+  }
+  
+  return total/maxValue;
+}
+
 } // namespace CGL

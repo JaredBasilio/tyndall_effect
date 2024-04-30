@@ -1,5 +1,6 @@
 #include "pathtracer.h"
 
+#include "pathtracer/bsdf.h"
 #include "pathtracer/noise.h"
 #include "scene/light.h"
 #include "scene/sphere.h"
@@ -21,7 +22,7 @@ PathTracer::PathTracer() {
   tm_level = 1.0f;
   tm_key = 0.18;
   tm_wht = 5.0f;
-  PerlinNoise noise;
+
   P_absorb = 0.1;
   P_scatter = 0.3;
 }
@@ -261,68 +262,70 @@ Vector3D PathTracer::est_radiance_global_illumination(const Ray &r) {
 
   // L_out = (isect.t == INF_D) ? debug_shading(r.d) : normal_shading(isect.n);
 
-  double interval = 0.05; // when homogeneous this was  double interval = 0.005;
+  double interval = 0.005; // when homogeneous this was  double interval =
+                           // 0.005;
   Vector3D marchDirection = r.d.unit();
-  double steps = isect.t / 0.05;
+
   double beta = 0.2;
   double red_transimission_rate = 0.1;
-  double attenuation = 1;
+  double attenuation;
   int hit_count = 0;
-  bool hit = false;
-  double avg_density = 0;
-  Vector3D L_light;
-  double distToLight, pdf;
-  double tau = 0.5;
   for (double i = 0; i < isect.t; i += interval) {
-
+    
     Vector3D sample_pos = r.o + i * marchDirection;
+    // std::cout << "camera x position: " << r.o.x << std::endl;
+    // std::cout << "camera y position: " << r.o.y << std::endl;
+    // std::cout << "camera z position: " << r.o.z << std::endl;
+    // std::cout << "Hit sample_pos: " << sample_pos.z << std::endl;
+    if (sample_pos.z > 0.5) {
+      continue; // we want to only consider fog in the room, not the gap between the fog and room (1.2 has buffer)
+
+    }
     //  std::cout << "y _position: " << sample_pos.y << std::endl;
-    if (sample_pos.y <= 0.75) {
+    if (sample_pos.y <= 0) {
       continue; // only one upper half area to be cloud
     }
-    double density = (noise.eval(sample_pos * 2.5) + 1);
+    double density = (noise.evalOctaves((sample_pos+Vector3D(1,0,1)), 3, 0.7));
     // std::cout << "density: " << density << std::endl;
-    double hit_prob = std::max((1 / density) / 10000, 0.0);
-    // std::cout << "Hit probability: " << hit_prob << std::endl;
+    double hit_prob = std::max((1 / density)/6000, 0.0); 
+    hit_prob = std::min(hit_prob, 1.0);
+
     if (coin_flip(hit_prob)) {
-      hit = true;
+
       hit_count += 1;
       isect.t = i;
       isect.bsdf = new FogBSDF(0.2);
 
       Vector3D hit_p = r.o + r.d * isect.t;
-      // assume there is only one light, no need loop
-      // for (int j = 0; j < scene->lights.size(); j++) {
-      //   Vector3D L_out_light(0, 0, 0);
-      Vector3D wi;
 
-        L_light = scene->lights[0]->sample_L(hit_p, &wi, &distToLight, &pdf); //wi is in world space, unit vector of hit point towards light source
-        double sample_rate = 0.05;
-        for (double t = 0; t <= distToLight; t+=sample_rate){
-        double density = (noise.eval(sample_pos * 2.5) + 1);
-        avg_density += density;
-        avg_density = avg_density / steps;
-        tau = avg_density*50; // try to make tau close to 1
-        // std::cout << "tau: " << tau << std::endl;
-        attenuation = std::exp(-beta * std::pow(distToLight*tau + 0.5, 4) - 0.7);
-        }
-        // std::cout << "distToLight1: " << distToLight << std::endl;
-        // std::exp(-beta * std::pow(distToLight + 0.7, 9) - 0.7);
+      double distToLight, pdf;
+      Vector3D L_light;
+
+      for (int j = 0; j < scene->lights.size(); j++) {
+        Vector3D L_out_light(0, 0, 0);
+        Vector3D wi;
+
+        L_light = scene->lights[j]->sample_L(hit_p, &wi, &distToLight, &pdf);
+        
+        attenuation = std::exp(-beta * std::pow(distToLight + 0.7, 5) - 0.7);
+        //std::exp(-beta * std::pow(distToLight + 0.5, 4) - 0.7);
+      }
+
+      attenuation = std::min(std::max(attenuation, 0.0), 1.0); //0.05 buffer to ensure positive attenuation (no black smoke)
+      auto red = L_light.x;
+      auto green = L_light.y;
+      auto blue = L_light.z;
+      Vector3D rayleigh_scattering_color =
+          Vector3D(red * 0.83, green, blue * 1.2);
+      L_out += rayleigh_scattering_color * attenuation;
+      // if (attenuation<= 0) {
+      //       std::cout << "attenuation: " << attenuation  << std::endl;
+
       // }
       break;
     }
   }
 
-  // std::cout << "attenuation: " << attenuation << std::endl;
-  // std::cout << "beta: " << beta << std::endl;
-  // std::cout << "distToLight: " << distToLight << std::endl;
-  attenuation = std::min(std::max(attenuation, 0.0), 1.0);
-  auto red = L_light.x;
-  red += hit_count * red_transimission_rate * L_light.x;
-  auto green = L_light.y;
-  auto blue = L_light.z;
-  Vector3D rayleigh_scattering_color = Vector3D(red * 0.83, green, blue * 1.2);
-  L_out += rayleigh_scattering_color * attenuation;
   Vector3D ambient_light(0.1, 0.1, 0.1); // Low intensity ambient light
 
   // Compute lighting with potentially modified intersection due to fog
