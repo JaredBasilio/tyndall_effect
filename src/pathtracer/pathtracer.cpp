@@ -4,6 +4,7 @@
 #include "scene/sphere.h"
 #include "scene/triangle.h"
 #include "vector3D.h"
+#include "pathtracer/noise.h"
 
 #include <algorithm>
 #define msg(s) cerr << "[PathTracer] " << s << endl;
@@ -21,7 +22,7 @@ PathTracer::PathTracer() {
   tm_level = 1.0f;
   tm_key = 0.18;
   tm_wht = 5.0f;
-    
+  PerlinNoise noise;
   P_absorb = 0.1;
   P_scatter = 0.3;
 }
@@ -266,14 +267,27 @@ Vector3D PathTracer::est_radiance_global_illumination(const Ray &r) {
     // L_out = (isect.t == INF_D) ? debug_shading(r.d) : normal_shading(isect.n);
     
     
-        double interval = 0.005;
-        double hit_prob = 0.0015;
+        double interval = 0.005; //when homogeneous this was  double interval = 0.005;
+        Vector3D marchDirection = r.d.unit();
+        
         double beta = 0.2;
         double red_transimission_rate = 0.1;
        double attenuation;
         int hit_count = 0;
         for (double i = 0; i < isect.t; i += interval) {
+
+          Vector3D sample_pos = r.o + i * marchDirection;
+          //  std::cout << "y _position: " << sample_pos.y << std::endl;
+          if (sample_pos.y <= 0.75){
+            continue; // only one upper half area to be cloud
+          }
+          double density = (noise.eval(sample_pos*2.5) + 1);
+          // std::cout << "density: " << density << std::endl;
+          double hit_prob = std::max((1/density)/10000, 0.0);
+          // std::cout << "Hit probability: " << hit_prob << std::endl;
+
             if (coin_flip(hit_prob)) {
+              
               hit_count += 1;
                 isect.t = i;
                 isect.bsdf = new FogBSDF(0.2);
@@ -299,7 +313,6 @@ Vector3D PathTracer::est_radiance_global_illumination(const Ray &r) {
                 auto blue = L_light.z;
                 Vector3D rayleigh_scattering_color = Vector3D(red*0.83, green, blue*1.2);
                 L_out += rayleigh_scattering_color * attenuation;
-                
                 break;
             }
         }

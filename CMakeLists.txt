@@ -31,6 +31,7 @@ set(APPLICATION_3_1_SOURCE
     src/pathtracer/camera.cpp
     src/pathtracer/bsdf.cpp
     src/pathtracer/pathtracer.cpp
+    src/pathtracer/noise
 
     # Imgui
     src/imgui/imgui.cpp
@@ -62,7 +63,7 @@ set(APPLICATION_3_2_SOURCE
     # MeshEdit
     src/util/halfEdgeMesh.cpp
     src/application/meshEdit.cpp
-
+    
     src/pathtracer/sampler.cpp
     src/pathtracer/advanced_bsdf.cpp
     src/scene/environment_light.cpp

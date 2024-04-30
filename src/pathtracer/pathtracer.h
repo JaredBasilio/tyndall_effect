@@ -2,6 +2,7 @@
 #define CGL_PATHTRACER_H
 
 #include "CGL/timer.h"
+#include "pathtracer/noise.h"
 
 #include "scene/bvh.h"
 #include "pathtracer/sampler.h"
@@ -103,7 +104,7 @@ namespace CGL {
         Camera* camera;       ///< current camera
 
         // Tonemapping Controls //
-
+        PerlinNoise noise;
         double tm_gamma;                           ///< gamma
         double tm_level;                           ///< exposure level
         double tm_key;                             ///< key value
